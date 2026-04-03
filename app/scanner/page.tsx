@@ -73,6 +73,17 @@ export default function ScannerPage() {
     }
   };
 
+  const compressImage = (source: HTMLCanvasElement | HTMLImageElement, maxPx = 1024): string => {
+    const canvas = document.createElement("canvas");
+    const w = source instanceof HTMLCanvasElement ? source.width : source.naturalWidth;
+    const h = source instanceof HTMLCanvasElement ? source.height : source.naturalHeight;
+    const ratio = Math.min(maxPx / w, maxPx / h, 1);
+    canvas.width = Math.round(w * ratio);
+    canvas.height = Math.round(h * ratio);
+    canvas.getContext("2d")?.drawImage(source, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.8);
+  };
+
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
     const video = videoRef.current;
@@ -80,7 +91,7 @@ export default function ScannerPage() {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext("2d")?.drawImage(video, 0, 0);
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+    const dataUrl = compressImage(canvas);
     setPreviewUrl(dataUrl);
     setImageData(dataUrl);
     stopCamera();
@@ -94,9 +105,14 @@ export default function ScannerPage() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;
-      setPreviewUrl(dataUrl);
-      setImageData(dataUrl);
-      setMode("preview");
+      const img = new Image();
+      img.onload = () => {
+        const compressed = compressImage(img);
+        setPreviewUrl(compressed);
+        setImageData(compressed);
+        setMode("preview");
+      };
+      img.src = dataUrl;
     };
     reader.readAsDataURL(file);
     e.target.value = "";
