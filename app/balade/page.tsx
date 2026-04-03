@@ -138,7 +138,7 @@ export default function BaladePage() {
   };
 
   const generateBalade = async () => {
-    if (!origin || !apiKey) return;
+    if (!origin) return;
     setLoading(true);
     setError("");
     try {
