@@ -56,6 +56,14 @@ export default function ScannerPage() {
 
   useEffect(() => () => stopCamera(), [stopCamera]);
 
+  // Attach stream to video element once it's in the DOM
+  useEffect(() => {
+    if (mode === "camera" && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [mode]);
+
   const startCamera = async () => {
     setError("");
     try {
@@ -63,11 +71,7 @@ export default function ScannerPage() {
         video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
-      setMode("camera");
+      setMode("camera"); // render video element first, then useEffect attaches the stream
     } catch {
       setError("Impossible d'accéder à la caméra. Utilise l'import d'image.");
     }
