@@ -57,9 +57,19 @@ export default function BaladePage() {
   const [loadingMsg, setLoadingMsg] = useState(loadingMessages[0]);
 
   useEffect(() => {
-    const key = getApiKey();
-    if (!key) setShowKeyModal(true);
-    else setApiKeyState(key);
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then(({ hasServerKey }) => {
+        if (hasServerKey) return;
+        const key = getApiKey();
+        if (!key) setShowKeyModal(true);
+        else setApiKeyState(key);
+      })
+      .catch(() => {
+        const key = getApiKey();
+        if (!key) setShowKeyModal(true);
+        else setApiKeyState(key);
+      });
   }, []);
 
   useEffect(() => {

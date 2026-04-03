@@ -3,8 +3,9 @@ import Groq from "groq-sdk";
 
 export async function POST(req: NextRequest) {
   try {
-    const { image, apiKey, location } = await req.json();
+    const { image, apiKey: clientKey, location } = await req.json();
 
+    const apiKey = process.env.GROQ_API_KEY || clientKey;
     if (!apiKey) {
       return NextResponse.json({ error: "Clé API manquante" }, { status: 400 });
     }

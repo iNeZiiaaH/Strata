@@ -45,9 +45,19 @@ export default function ScannerPage() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
-    const key = getApiKey();
-    if (!key) setShowKeyModal(true);
-    else setApiKeyState(key);
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then(({ hasServerKey }) => {
+        if (hasServerKey) return; // clé côté serveur, pas besoin de modal
+        const key = getApiKey();
+        if (!key) setShowKeyModal(true);
+        else setApiKeyState(key);
+      })
+      .catch(() => {
+        const key = getApiKey();
+        if (!key) setShowKeyModal(true);
+        else setApiKeyState(key);
+      });
 
     navigator.geolocation?.getCurrentPosition(
       (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
