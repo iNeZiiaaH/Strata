@@ -2,9 +2,7 @@
 
 import { useEffect, useState, useRef, lazy, Suspense, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getApiKey } from "@/lib/store";
 import { haversineDistance, formatDistance, bearing, bearingLabel } from "@/lib/geo";
-import ApiKeyModal from "@/components/ApiKeyModal";
 
 const BaladeMap = lazy(() => import("@/components/BaladeMap"));
 
@@ -31,8 +29,6 @@ const ARRIVE_THRESHOLD = 40; // metres
 
 export default function BaladePage() {
   const router = useRouter();
-  const [apiKey, setApiKeyState] = useState<string>("");
-  const [showKeyModal, setShowKeyModal] = useState(false);
   const [locationState, setLocationState] = useState<"idle" | "requesting" | "granted" | "denied">("idle");
   const [origin, setOrigin] = useState<{ lat: number; lng: number } | null>(null);
   const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null);
@@ -56,21 +52,6 @@ export default function BaladePage() {
   ];
   const [loadingMsg, setLoadingMsg] = useState(loadingMessages[0]);
 
-  useEffect(() => {
-    fetch("/api/config")
-      .then((r) => r.json())
-      .then(({ hasServerKey }) => {
-        if (hasServerKey) return;
-        const key = getApiKey();
-        if (!key) setShowKeyModal(true);
-        else setApiKeyState(key);
-      })
-      .catch(() => {
-        const key = getApiKey();
-        if (!key) setShowKeyModal(true);
-        else setApiKeyState(key);
-      });
-  }, []);
 
   useEffect(() => {
     if (loading) {
@@ -164,7 +145,7 @@ export default function BaladePage() {
       const res = await fetch("/api/balade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apiKey, location: origin, rayon: 600 }),
+        body: JSON.stringify({ location: origin, rayon: 600 }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur serveur");
@@ -195,12 +176,6 @@ export default function BaladePage() {
 
   return (
     <div className="min-h-dvh flex flex-col" style={{ background: "var(--bg)" }}>
-      {showKeyModal && (
-        <ApiKeyModal
-          onSave={(k) => { setApiKeyState(k); setShowKeyModal(false); }}
-        />
-      )}
-
       {/* Header */}
       <header
         className="flex items-center gap-3 px-4 py-4 font-sans-strata flex-shrink-0"

@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getApiKey } from "@/lib/store";
-import ApiKeyModal from "@/components/ApiKeyModal";
 
 type Strate = {
   type: "histoire" | "architecture" | "avant" | "anecdote" | "connexion";
@@ -34,8 +32,6 @@ export default function ScannerPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const [apiKey, setApiKeyState] = useState<string>("");
-  const [showKeyModal, setShowKeyModal] = useState(false);
   const [mode, setMode] = useState<"idle" | "camera" | "preview" | "analyzing" | "result">("idle");
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [imageData, setImageData] = useState<string>("");
@@ -45,20 +41,6 @@ export default function ScannerPage() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
-    fetch("/api/config")
-      .then((r) => r.json())
-      .then(({ hasServerKey }) => {
-        if (hasServerKey) return; // clé côté serveur, pas besoin de modal
-        const key = getApiKey();
-        if (!key) setShowKeyModal(true);
-        else setApiKeyState(key);
-      })
-      .catch(() => {
-        const key = getApiKey();
-        if (!key) setShowKeyModal(true);
-        else setApiKeyState(key);
-      });
-
     navigator.geolocation?.getCurrentPosition(
       (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => {}
@@ -128,7 +110,7 @@ export default function ScannerPage() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: imageData, apiKey, location }),
+        body: JSON.stringify({ image: imageData, location }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur serveur");
@@ -152,15 +134,6 @@ export default function ScannerPage() {
 
   return (
     <div className="min-h-dvh flex flex-col" style={{ background: "var(--bg)" }}>
-      {showKeyModal && (
-        <ApiKeyModal
-          onSave={(k) => {
-            setApiKeyState(k);
-            setShowKeyModal(false);
-          }}
-        />
-      )}
-
       {/* Header */}
       <header
         className="flex items-center gap-3 px-4 py-4 font-sans-strata"
@@ -176,14 +149,6 @@ export default function ScannerPage() {
         <span className="text-sm font-medium" style={{ color: "var(--ochre)" }}>
           Scanner
         </span>
-        <div className="flex-1" />
-        <button
-          onClick={() => setShowKeyModal(true)}
-          className="p-2 rounded-lg text-xs"
-          style={{ color: "var(--text-dim)" }}
-        >
-          Clé API
-        </button>
       </header>
 
       {/* Main content */}

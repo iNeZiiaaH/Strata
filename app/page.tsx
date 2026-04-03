@@ -145,7 +145,7 @@ export default function Home() {
       {/* Bottom note */}
       <footer className="px-6 py-6 text-center">
         <p className="text-xs font-sans-strata" style={{ color: "var(--text-dim)" }}>
-          Alimenté par Llama 4 via Groq · 100% gratuit, sans carte bancaire
+          Alimenté par Llama 4 via Groq · Carte GPS OpenStreetMap
         </p>
       </footer>
     </main>
