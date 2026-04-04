@@ -5,8 +5,8 @@ import { useEffect, useRef } from "react";
 type Etape = {
   numero: number;
   titre: string;
-  lat_offset: number;
-  lng_offset: number;
+  lat: number;
+  lng: number;
 };
 
 interface Props {
@@ -36,10 +36,7 @@ export default function BaladeMap({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toNextLineRef = useRef<any>(null);
 
-  const etapeCoords = etapes.map((e) => ({
-    lat: origin.lat + e.lat_offset,
-    lng: origin.lng + e.lng_offset,
-  }));
+  const etapeCoords = etapes.map((e) => ({ lat: e.lat, lng: e.lng }));
 
   const makeStepIcon = (L: typeof import("leaflet"), num: number, active: boolean) => {
     const bg = active ? "#c4965a" : "#1c1916";
